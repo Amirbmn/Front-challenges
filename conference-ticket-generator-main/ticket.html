@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+
+<style>
+
+
+    body {
+      margin: 0;
+      height:130vh;
+      background: radial-gradient(circle at top left, #1a0033, #0a0015 60%);
+      font-family: sans-serif;
+      position: relative;
+      
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%; 
+      background-image: 
+        url("images/pattern-squiggly-line-bottom-desktop.svg"),
+        url("images/pattern-lines.svg"),
+        url("images/pattern-circle.svg"),
+        url("images/pattern-circle.svg"),
+        url("images/pattern-squiggly-line-top.svg"),
+        url("images/background-desktop.png"),
+        radial-gradient(hsl(248, 70%, 10%));
+      background-repeat: no-repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+      background-size: 450px auto, 80px 80px, 130px, 130px, 300px, 1300px, cover;
+      background-position: bottom left, center, 73% 80%, 5% -10%, 100% -6%, center, center;
+      z-index: 0;
+      opacity: 0.9;
+    }
+
+    body > * {
+      position: relative;
+      z-index: 1;
+    }
+
+
+.logo{ margin-left: 600px; margin-top: 20px; width: 120px; }
+.intro{ color: white; font-size: 30px; font-weight: bold; margin-left: 450px;}
+.stats{ margin-left:70px; margin-top: -20px; }
+.Secure{ color: rgb(165, 164, 164); font-size: 15px; margin-left: 460px; }
+
+
+
+.intro{
+   line-height: 2px;
+   text-align: center;
+margin-left: 0px;  
+}
+
+.email-exp{
+    padding-top: 10px;
+    font-size: 12px;
+  font-weight: 100;
+  line-height: 4px;
+}
+
+
+.ticket {
+  position: relative;    
+  width: 400px;            
+  margin: 50px auto;       
+}
+
+.ticket-img {
+  width: 100%;          
+ 
+}
+
+.ticket-logo {
+  position: absolute;      
+  top: 20px;             
+  left: 20px;             
+  width: 180px;           
+  
+  
+}
+.data-and-loc{
+    position: absolute;
+    margin-top: 55px;
+    margin-left: 60px;
+    color: rgba(255, 255, 255, 0.502);
+    font-size: 12px;
+}
+
+.user-img{
+    height: 50px;
+    width: 50px;
+    top: 130px;
+    left: 15px;
+    border-radius: 8px;
+    position: absolute;
+}
+
+.ticket-name{
+    font-size: 18px;
+    position: absolute;
+    left: 20px;
+    top: 130px;
+    left: 70px;
+    color: rgba(255, 255, 255, 0.742);
+}
+
+.github-icon{
+position: absolute;
+top: 156px;
+left: 68px;
+height: 8%;
+
+}
+
+.githubName{
+     position: absolute;
+    font-size: 12px;
+    top: 157px;
+    left: 85px;
+    color: rgba(255, 255, 255, 0.375);
+}
+
+
+
+.ticketNumber{
+    position: absolute;
+    left: 340px;
+    top: 70px;
+    transform:rotate(90deg);
+    color: rgba(255, 255, 255, 0.214);
+}
+
+</style>
+
+
+
+
+ <img class="logo" src="images/logo-full.svg" alt="">
+  <div class="intro">
+  <p>Congrats,&nbsp;&nbsp;<span class="ticketName"></span>&nbsp;! </p>
+  <p>Your &nbsp;ticket &nbsp;is &nbsp;ready</p>
+
+  <div class="email-exp">
+  <p>We've &nbsp; emailed &nbsp;your &nbsp;ticket &nbsp;to </p>
+<p>&nbsp;<span class="email" style="color: hsl(7, 88%, 67%);"></span>&nbsp;and&nbsp; will&nbsp; send &nbsp;updates&nbsp; in</p>
+<p>&nbsp; the&nbsp;run&nbsp; up &nbsp;to &nbsp;the&nbsp; event</p></div> </div>
+
+</p>
+    
+<div class="ticket">
+    <img class="ticket-logo" src="images/logo-full.svg" alt="">
+    <p class="data-and-loc">Jan &nbsp;31,&nbsp;&nbsp;2025&nbsp;/&nbsp;&nbsp;&nbsp;Austin,&nbsp; TX</p>
+    <img class="ticket-img" src="images/pattern-ticket.svg" alt="">
+
+    <div class="ticket-info">
+    <img  class="user-img" src="" alt="">
+     <span class="ticket-name">sdffds</span>
+     <img class="github-icon" src="images/icon-github.svg" alt="">
+     <span class="githubName"></span>
+     <p class="ticketNumber">#</p>
+
+    </div>
+</div>
+
+
+
+<script>
+
+const ticketName = localStorage.getItem("ticketName") || "NoName";
+document.querySelector(".ticket-name").textContent = ticketName; 
+document.querySelector(".ticketName").textContent = ticketName; 
+
+const email = localStorage.getItem("email") || "NoName";
+document.querySelector(".email").textContent = email;
+
+const avatar = localStorage.getItem("avatar") || "";
+document.querySelector(".user-img").src = avatar;
+
+const githubName = localStorage.getItem("github-name") || "NoName";
+document.querySelector(".githubName").textContent = githubName;
+
+
+const ticketNumber=Math.floor(Math.random()*90000)+10000;
+document.querySelector(".ticketNumber").textContent='#'+ticketNumber;
+</script>
+
+
+</body>
+
+</html>

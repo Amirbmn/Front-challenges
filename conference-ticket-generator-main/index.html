@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coding Conf Background</title>
+  <style>
+    body {
+      margin: 0;
+      height:130vh;
+      background: radial-gradient(circle at top left, #1a0033, #0a0015 60%);
+      font-family: sans-serif;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%; 
+      background-image: 
+        url("images/pattern-squiggly-line-bottom-desktop.svg"),
+        url("images/pattern-lines.svg"),
+        url("images/pattern-circle.svg"),
+        url("images/pattern-circle.svg"),
+        url("images/pattern-squiggly-line-top.svg"),
+        url("images/background-desktop.png"),
+        radial-gradient(hsl(248, 70%, 10%));
+      background-repeat: no-repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+      background-size: 450px auto, 80px 80px, 130px, 130px, 300px, 1300px, cover;
+      background-position: bottom left, center, 73% 80%, 5% -10%, 100% -6%, center, center;
+      z-index: 0;
+      opacity: 0.9;
+    }
+
+    body > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo{ margin-left: 600px; margin-top: 20px; width: 120px; }
+    .intro{ color: white; font-size: 30px; font-weight: bold; margin-left: 450px; }
+    .stats{ margin-left:70px; margin-top: -20px; }
+    .Secure{ color: rgb(165, 164, 164); font-size: 15px; margin-left: 460px; }
+    .text-above-input{ color: rgb(178, 178, 178); margin-left: 500px; margin-top: 30px; margin-bottom: -10px; }
+
+    .upload-box {
+      border: 2px dashed rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      width: 300px;
+      height: 100px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.3s;
+      position: relative;
+      background: rgba(255, 255, 255, 0.05);
+      margin-left: 500px;
+      margin-top:20px;
+    }
+
+    .upload-box:hover {
+      border-color: #ff6b6b;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .upload-box input[type="file"] {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .drag-file{ color:  rgb(178, 178, 178); }
+
+    input{
+      height: 35px;
+      width: 300px;
+      background-color: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.291);
+      border-radius: 8px;
+      margin-left: 500px;
+      margin-top: 20px;
+      padding-left: 10px;
+      color: rgb(178, 178, 178);
+    }
+
+    button{
+      width: 310px;
+      height: 42px;
+      background-color: hsl(7, 88%, 67%);
+      border: none;
+      border-radius: 8px;
+      margin-left: 500px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+
+   button:hover{
+    background-color:hsl(7, 83%, 56%) ;
+   }
+
+
+    .generate-text{ color: #0a0015; }
+    ::placeholder{ color:rgba(178, 178, 178, 0.477); }
+
+   
+    .helper-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      margin-left: 500px;
+      font-size: 10px;
+    }
+
+    .helper-line img { height: 10px; }
+
+    #helper-text { color: rgb(178, 178, 178); }
+    #error-text { color: hsla(7, 88%, 67%, 0.9); display: none; }
+    #error-text img {
+      filter: invert(54%) sepia(85%) saturate(3152%) hue-rotate(340deg) brightness(101%) contrast(97%);
+    }
+
+    .action-buttons{
+      font-size: 10px;
+      color: rgb(217, 189, 189);
+      width: 80px;
+      height: 20px;
+      border-radius: 7px;
+      background-color: rgba(159, 156, 156, 0.358);
+      margin: 0;
+    }
+    .actions { display: flex; gap: 10px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  
+  <img class="logo" src="images/logo-full.svg" alt="">
+  <div class="intro"><p>Your Journey to Coding Conf</p><p class="stats">2025 Starts Here!</p></div>
+  <p class="Secure">Secure your spot at next year's biggest coding conference.</p>
+
+  <div class="upload">
+    <p class="text-above-input">Upload Avatar</p>
+    
+    <label class="upload-box" id="upload-box">
+      <img id="preview" alt="Preview"
+        style="display:none; width:45px; height:45px; border-radius:10px; object-fit:cover;
+        border:solid 2px rgba(255,255,255,0.291);">
+
+      <div id="upload-content">
+        <div class="icon"><img src="images/icon-upload.svg" alt=""></div>
+        <p class="drag-file">Drag and drop or click to upload</p>
+      </div>
+
+      <div id="actions" class="actions" style="display:none;">
+        <button type="button" class="action-buttons" id="remove-btn">Remove image</button>
+        <button type="button" class="action-buttons" id="change-btn">Change image</button>
+      </div>
+    </label>
+
+    <input type="file" id="file-input" accept="image/*" style="display:none;">
+
+
+    <div id="helper-text" class="helper-line">
+      <img src="images/icon-info.svg" alt="">
+      <p>Upload your photo (JPG or PNG, max size: 500KB)</p>
+    </div>
+    <div id="error-text" class="helper-line">
+      <img src="images/icon-info.svg" alt="">
+      <p>File too large. Please upload a photo under 500KB</p>
+    </div>
+  </div>
+
+  <div class="text-inputs">
+    <p class="text-above-input">Full Name</p>
+    <input id="full-name" type="text">
+
+    <p  class="text-above-input">Email Address</p>
+    <input id="email-input" placeholder="example@gmail.com" type="text">
+
+    <div id="email-error" class="helper-line" style="color: hsla(7, 88%, 67%, 0.9); display: none;">
+      <img src="images/icon-info.svg" alt="">
+      <p>Please enter a valid email address</p>
+    </div>
+
+    <p class="text-above-input">Github Username</p>
+    <input id="github-name" placeholder="@yourusername" type="text">
+  </div>
+
+  <button class="generate-button"><p class="generate-text">Generate My Ticket</p></button>
+
+  <script>
+    const fileInput = document.getElementById("file-input");
+    const preview = document.getElementById("preview");
+    const uploadContent = document.getElementById("upload-content");
+    const helperText = document.getElementById("helper-text");
+    const errorText = document.getElementById("error-text");
+    const actions = document.getElementById("actions");
+    const removeBtn = document.getElementById("remove-btn");
+    const changeBtn = document.getElementById("change-btn");
+    const uploadBox = document.getElementById("upload-box");
+    const emailRegex=/@gmail\.com$/;
+  
+    const emailError=document.getElementById("email-error");
+    const emailInput=document.getElementById("email-input");
+    
+
+
+
+
+
+
+
+
+
+
+
+
+    fileInput.addEventListener("change", function () {
+      const file = this.files[0];
+      if (!file) return;
+
+      if (file.size > 500 * 1024) {
+        errorText.style.display = "flex";
+        helperText.style.display = "none";
+        preview.style.display = "none";
+        uploadContent.style.display = "block";
+        actions.style.display = "none";
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        preview.src = e.target.result;
+        preview.style.display = "block";
+        uploadContent.style.display = "none";
+        helperText.style.display = "none";
+        errorText.style.display = "none";
+        actions.style.display = "flex";
+      };
+      reader.readAsDataURL(file);
+    });
+
+    changeBtn.addEventListener("click", e => {
+      e.stopPropagation();
+      fileInput.click();
+    });
+
+    removeBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      fileInput.value = "";
+      preview.style.display = "none";
+      uploadContent.style.display = "block";
+      actions.style.display = "none";
+      helperText.style.display = "flex";
+      errorText.style.display = "none";
+    });
+
+    uploadBox.addEventListener("click", () => {
+      if (preview.style.display === "none") {
+        fileInput.click();
+      }
+    });
+
+
+  emailInput.addEventListener("input",()=>{
+  if(emailRegex.test(emailInput.value)){
+    emailError.style.display="none";
+  }
+  else{emailError.style.display="flex";}
+
+  });
+
+
+document.querySelector(".generate-button").addEventListener("click",()=>{
+const name=document.getElementById("full-name").value;
+const email=document.getElementById("email-input").value;
+const github=document.getElementById("github-name").value;
+const avatar=document.getElementById("preview").src;
+
+localStorage.setItem('ticketName',name);
+localStorage.setItem('email',email);
+localStorage.setItem('github-name',github);
+localStorage.setItem('avatar',avatar);
+window.location.href='ticket.html';
+
+});
+
+
+
+
+  </script>
+</body>
+</html>
