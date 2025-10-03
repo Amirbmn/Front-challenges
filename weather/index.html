@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Weather Now — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'title-font';
+    src: url(assets/fonts/Bricolage_Grotesque/BricolageGrotesque-VariableFont_opsz\,wdth\,wght.ttf);
+  }
+:root{
+  --page-bg: #f2f5fb;
+  --app-bg: #070826;
+  --panel: #0f1530;
+  --card: #0c1228;
+  --muted: #97a0c9;
+  --accent1: #5662f2;
+  --accent2: #3c49d6;
+  --glass: rgba(255,255,255,0.03);
+  --soft-shadow: 0 30px 50px rgba(6,10,30,0.45);
+  --radius-lg: 16px;
+  --radius-md: 12px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: linear-gradient(180deg,#eef2fb 0%, #f6f8ff 100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:30px;
+}
+.app {
+  width: 1020px;
+  background: var(--app-bg);
+  border-radius: 18px;
+  padding: 36px;
+  box-shadow: var(--soft-shadow);
+  color: #e9eefc;
+}
+.top {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+.logo {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-weight:700;
+  font-size:18px;
+}
+.logo-image {
+  position: absolute;
+  margin-top: -500px;
+  left: 140px;
+  width: 120px;
+  right: 100px;
+  height: auto;
+
+}
+.units {
+  background:var(--glass);
+  padding:8px 12px;
+  border-radius:10px;
+  color:var(--muted);
+  font-weight:600;
+  font-size:13px;
+  position: absolute;
+right: 150px;
+top: 30px;
+background-color: rgba(128, 128, 128, 0.324);
+padding-left: 40px;
+}
+
+.icon-units{
+   background:var(--glass);
+  padding:8px 12px;
+  border-radius:10px;
+  color:var(--muted);
+  font-weight:600;
+  font-size:13px;
+  position: absolute;
+right: 205px;
+top: 30px;
+background-color: rgba(255, 255, 255, 0);
+}
+
+
+
+.title {
+  text-align:center;
+  font-size:40px;
+  margin:18px 0 16px;
+  font-weight:700;
+  color:#ffffff;
+  letter-spacing: -0.2px;
+ font-family: 'title-font';
+ margin-top: 250px;
+ margin-bottom: 50px;
+}
+.search-wrap {
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin-bottom:26px;
+}
+.search {
+  width:560px;
+  display:flex;
+  gap:8px;
+}
+.search input{
+  flex:1;
+  background-color: rgba(128, 128, 128, 0.324);
+  border: none;
+  padding:12px 14px;
+  border-radius:10px;
+  color:#eaf0ff87;
+  outline:none;
+  font-size:15px;
+
+}
+input[type="search"]::placeholder {
+  color:rgba(255, 255, 255, 0.7);
+margin-left: 200px;
+font-size: 15px;
+}
+
+
+.search-logo{
+  position: relative;
+  left: 45px;
+  width: 16px;
+}
+
+.search button{
+  background: linear-gradient(180deg,var(--accent1),var(--accent2));
+  border:none;
+  color:white;
+  padding:10px 16px;
+  border-radius:10px;
+  font-weight:600;
+  cursor:pointer;
+}
+.layout {
+  display:grid;
+  grid-template-columns: 1fr 320px;
+  gap:26px;
+  align-items:start;
+}
+.left {
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.main-card {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:20px 22px;
+  border-radius: 14px;
+  height: 140px;
+ background: url(assets/images/bg-today-large.svg);
+  position:relative;
+  overflow:visible;
+}
+.main-left {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  align-self:flex-start;
+  margin-top: 30px;
+  margin-left: 5px;
+}
+.location {
+  font-size:18px;
+  font-weight:700;
+  color:#ffffff;
+  margin-bottom:2px;
+}
+.date {
+  font-size:13px;
+  color: rgba(255,255,255,0.9);
+}
+.main-right {
+  display:flex;
+  align-items:center;
+  gap:18px;
+}
+.temp {
+  font-size:56px;
+  font-weight:700;
+  line-height:1;
+}
+.main-sun {
+  width:100px;
+  height:100px;
+
+  background: rgba(255, 204, 80, 0.12);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow: 0 8px 26px rgba(74,78,219,0.18);
+  background-color: rgba(255, 255, 255, 0);
+}
+
+
+
+.main-sun img{ width:68px; height:68px;  }
+.stats {
+  display:flex;
+  gap:12px;
+  margin-top:4px;
+ 
+}
+.stat {
+  background: var(--card);
+  border-radius:12px;
+  padding:14px 16px;
+  flex:1;
+  height:75px;
+  min-width:0;
+  box-shadow: inset 0 -1px 0 rgba(255,255,255,0.02);
+  background-color: rgba(128, 128, 128, 0.324);
+  margin-bottom: 20px;
+}
+.stat .label { font-size:13px; color:var(--muted); margin-bottom:6px; }
+.stat .value { font-size:18px; font-weight:700; color:#fff;margin-top: 10px; }
+.daily-area {
+  margin-top:6px;
+}
+.daily-title {
+  font-size:14px;
+  color:#cfe0ff;
+  font-weight:600;
+  margin-bottom:10px;
+}
+
+select{
+  background-color: rgba(221, 218, 218, 0.229);
+  color:rgba(255, 255, 255, 0.833);
+  padding-left: 10px;
+  padding-top: 5px;
+   padding-bottom: 5px;
+   width: 90px;
+   border-radius: 8px;
+}
+
+.daily-row {
+  display:flex;
+  gap:10px;
+  overflow-x:auto;
+  padding-bottom:6px;
+}
+.daily-row::-webkit-scrollbar{ height:8px }
+.daily-row::-webkit-scrollbar-thumb{ background: rgba(128, 128, 128, 0.324);; border-radius:6px }
+.day-card {
+  min-width:72px;
+  background: var(--card);
+  border-radius:12px;
+  padding:10px 8px;
+  text-align:center;
+  flex-shrink:0;
+  background-color: rgba(128, 128, 128, 0.324);
+  box-shadow: 0 10px 30px rgba(2,6,23,0.35);
+}
+.day-card .dow{ font-size:13px; color:var(--muted); margin-bottom:8px; }
+.day-card .icon img{ width:28px; height:28px; display:block; margin:0 auto 8px; }
+.day-card .range{ font-size:13px; color:#e6f0ff; }
+.hourly-panel {
+  background: linear-gradient(180deg,  rgba(128, 128, 128, 0.324),  rgba(128, 128, 128, 0.324));
+  border-radius: 14px;
+  padding:14px;
+  min-height:360px;
+}
+.hourly-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:var(--muted);
+  font-weight:700;
+  margin-bottom:8px;
+}
+
+.hourly-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  max-height:420px;
+  overflow:auto;
+  padding-right:6px;
+}
+.hour {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:12px;
+  border-radius:12px;
+  background-color: rgba(128, 128, 128, 0.171);
+  border: 1px solid rgba(255,255,255,0.02);
+}
+.hour .time { color:var(--muted); width:64px; font-weight:700; }
+.hour .mid { display:flex; align-items:center; gap:8px; color:#eaf0ff; font-size:14px; flex:1 }
+.hour .mid img{ width:20px; height:20px; display:block }
+.hour .temp-h{ font-weight:700; color:#fff; width:36px; text-align:right }
+@media (max-width:1100px){
+  .app{ width:94% }
+  .title{ font-size:32px }
+}
+@media (max-width:880px){
+  .layout{ grid-template-columns: 1fr; }
+  .hourly-panel{ order:2 }
+}
+</style>
+</head>
+<body>
+  <img class="logo-image" src="assets/images/logo.svg" alt="logo">
+  <img class="icon-units" src="assets/images/icon-units.svg" alt="">
+  <div class="units">Units ▾</div>
+  <div class="app">
+    <div class="top">
+      <div class="logo"></div>
+      
+    </div>
+    <h1 class="title">How's the sky looking today?</h1>
+    <div class="search-wrap">
+      <div class="search">
+        <img class="search-logo" src="assets/images/icon-search.svg" alt="">
+        <input type="search" placeholder=" &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Search for a place..." aria-label="Search for a place">
+        <button>Search</button>
+      </div>
+    </div>
+    <div class="layout">
+      <div class="left">
+        <div class="main-card">
+          <div class="main-left">
+            
+            <div class="location">Berlin, Germany</div>
+            <div class="date">Tuesday, Aug 5, 2025</div>
+          </div>
+          <div class="main-right">
+            <div class="main-sun">
+              <img class="main-sun" src="assets/images/icon-sunny.webp" alt="sun">
+            </div>
+            <div class="temp">20°</div>
+          
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <div class="label">Feels Like</div>
+            <div class="value">18°</div>
+          </div>
+          <div class="stat">
+            <div class="label">Humidity</div>
+            <div class="value">46%</div>
+          </div>
+          <div class="stat">
+            <div class="label">Wind</div>
+            <div class="value">14 km/h</div>
+          </div>
+          <div class="stat">
+            <div class="label">Precipitation</div>
+            <div class="value">0 mm</div>
+          </div>
+        </div>
+        <div class="daily-area">
+          <div class="daily-title">Daily forecast</div>
+          <div class="daily-row" aria-label="Daily forecast">
+            <div class="day-card">
+              <div class="dow">Tue</div>
+              <div class="icon"><img src="assets/images/icon-rain.webp" alt="rain"></div>
+              <div class="range">20° <span style="opacity:.65">/ 14°</span></div>
+            </div>
+            <div class="day-card">
+              <div class="dow">Wed</div>
+              <div class="icon"><img src="assets/images/icon-rain.webp" alt="rain"></div>
+              <div class="range">21° <span style="opacity:.65">/ 15°</span></div>
+            </div>
+            <div class="day-card">
+              <div class="dow">Thu</div>
+              <div class="icon"><img src="assets/images/icon-sunny.webp" alt="sun"></div>
+              <div class="range">24° <span style="opacity:.65">/ 14°</span></div>
+            </div>
+            <div class="day-card">
+              <div class="dow">Fri</div>
+              <div class="icon"><img src="assets/images/icon-partly-cloudy.webp" alt="partly"></div>
+              <div class="range">25° <span style="opacity:.65">/ 13°</span></div>
+            </div>
+            <div class="day-card">
+              <div class="dow">Sat</div>
+              <div class="icon"><img src="assets/images/icon-storm.webp" alt="storm"></div>
+              <div class="range">21° <span style="opacity:.65">/ 15°</span></div>
+            </div>
+            <div class="day-card">
+              <div class="dow">Sun</div>
+              <div class="icon"><img src="assets/images/icon-partly-cloudy.webp" alt="cloud"></div>
+              <div class="range">25° <span style="opacity:.65">/ 16°</span></div>
+            </div>
+            <div class="day-card">
+              <div class="dow">Mon</div>
+              <div class="icon"><img src="assets/images/icon-fog.webp" alt="fog"></div>
+              <div class="range">24° <span style="opacity:.65">/ 15°</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside class="hourly-panel" aria-label="Hourly forecast">
+        <div class="hourly-head">
+          <div>Hourly forecast</div>
+         
+          <div class="select-day">
+
+  <select  id="day" name="day">
+    <option value="tuesday">Tuesday</option>
+    <option value="wednesday">Wednesday</option>
+    <option value="thursday">Thursday</option>
+    <option value="friday">Friday</option>
+    <option value="saturday">Saturday</option>
+    <option value="sunday">Sunday</option>
+      <option value="monday">Monday</option>
+  </select>
+</div>
+
+
+        </div>
+        <div class="hourly-list">
+          <div class="hour">
+            <div class="time">3 PM</div>
+            <div class="mid"><img src="assets/cloud.svg" alt=""><div>Cloudy</div></div>
+            <div class="temp-h">20°</div>
+          </div>
+          <div class="hour">
+            <div class="time">4 PM</div>
+            <div class="mid"><img src="assets/partly-cloudy.svg" alt=""><div>Partly</div></div>
+            <div class="temp-h">20°</div>
+          </div>
+          <div class="hour">
+            <div class="time">5 PM</div>
+            <div class="mid"><img src="assets/sun-small.svg" alt=""><div>Sunny</div></div>
+            <div class="temp-h">20°</div>
+          </div>
+          <div class="hour">
+            <div class="time">6 PM</div>
+            <div class="mid"><img src="assets/cloud.svg" alt=""><div>Cloudy</div></div>
+            <div class="temp-h">19°</div>
+          </div>
+          <div class="hour">
+            <div class="time">7 PM</div>
+            <div class="mid"><img src="assets/cloud-rain.svg" alt=""><div>Light rain</div></div>
+            <div class="temp-h">18°</div>
+          </div>
+          <div class="hour">
+            <div class="time">8 PM</div>
+            <div class="mid"><img src="assets/fog.svg" alt=""><div>Fog</div></div>
+            <div class="temp-h">18°</div>
+          </div>
+          <div class="hour">
+            <div class="time">9 PM</div>
+            <div class="mid"><img src="assets/cloud-rain.svg" alt=""><div>Rain</div></div>
+            <div class="temp-h">17°</div>
+          </div>
+          <div class="hour">
+            <div class="time">10 PM</div>
+            <div class="mid"><img src="assets/cloud-rain.svg" alt=""><div>Rain</div></div>
+            <div class="temp-h">17°</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</body>
+</html>
