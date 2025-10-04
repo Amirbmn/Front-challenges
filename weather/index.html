@@ -66,20 +66,68 @@ body{
 
 }
 .units {
-  background:var(--glass);
-  padding:8px 12px;
-  border-radius:10px;
-  color:var(--muted);
-  font-weight:600;
-  font-size:13px;
+  background-color: rgba(255,255,255,0.05);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 10px;
+  padding: 8px 14px;
+  cursor: pointer;
   position: absolute;
-right: 450px;
-top: 30px;
-background-color: rgba(255,255,255,0.05);
-padding-left: 40px;
+  right: 420px;
+  top: 30px;
+  backdrop-filter: blur(8px);
+  user-select: none;
+  width: 80px;
+  padding-left: 30px;
 }
 
+.units:hover {
+  color: #fff;
+}
+
+.units-panel {
+  display: none;
+  position: absolute;
+  top: 70px;
+  right: 450px;
+  background: rgba(15, 21, 48, 0.95);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  padding: 12px 0;
+  min-width: 200px;
+  z-index: 10;
+}
+
+.units-panel.active {
+  display: block;
+}
+
+.units-panel .section-title {
+  font-size: 12px;
+  color: #97a0c9;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 14px 4px;
+}
+
+.units-panel .option {
+  padding: 8px 14px;
+  color: #e9eefc;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.units-panel .option:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+
 .icon-units{
+  z-index: 100;
    background:var(--glass);
   padding:8px 12px;
   border-radius:10px;
@@ -87,7 +135,7 @@ padding-left: 40px;
   font-weight:600;
   font-size:13px;
   position: absolute;
-right: 510px;
+right: 465px;
 top: 30px;
 background-color: rgba(255, 255, 255, 0);
 }
@@ -269,6 +317,98 @@ select:after{
 
 }
 
+.day-select {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 10px;
+  padding: 8px 14px;
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+  backdrop-filter: blur(8px);
+  user-select: none;
+  width: 100px;
+}
+
+.day-select:hover {
+  color: #fff;
+}
+
+.day-select .arrow-down {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+}
+
+.day-panel {
+  display: none;
+  position: absolute;
+  top: 35px; /* Adjust according to where you want it */
+  right: 0;
+  background: rgba(15, 21, 48, 0.95);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  padding: 12px 0;
+  min-width: 200px;
+  z-index: 10;
+}
+
+.day-panel.active {
+  display: block;
+}
+
+.day-panel .option {
+  padding: 8px 14px;
+  color: #e9eefc;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.day-panel .option:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+
+.day-panel {
+  display: none;
+  position: absolute;
+  top: 130px; /* Adjust accordingly */
+  right: 450px;
+  background: rgba(15, 21, 48, 0.95);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  padding: 12px 0;
+  min-width: 200px;
+  z-index: 10;
+}
+
+.day-panel.active {
+  display: block;
+}
+
+.day-panel .option {
+  padding: 8px 14px;
+  color: #e9eefc;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.day-panel .option:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+
+
 .day{
   background-color: rgba(15, 21, 48, 0.95);
 border: none;
@@ -351,28 +491,39 @@ padding-right: 200px;
   .layout{ grid-template-columns: 1fr; }
   .hourly-panel{ order:2 }
 }
+
+
+
+option{
+  background-color: rgba(15, 21, 48, 0.95);
+  border:none;
+  height: 10px;
+}
+
+
+
 </style>
 </head>
 <body>
   <img class="logo-image" src="assets/images/logo.svg" alt="logo">
   <img class="icon-units" src="assets/images/icon-units.svg" alt="">
-  <div class="units">Units 
+ <div class="units" id="units-trigger">Units</div>
 
+<div class="units-panel" id="units-panel">
+  <div class="option">Switch to imperial</div>
+  <div class="section-title">Temperature</div>
+  <div class="option" data-value="celsius">Celsius (°C)</div>
+  <div class="option" data-value="fahrenheit">Fahrenheit (°F)</div>
+   <div style="color: rgba(128, 128, 128, 0.213);">&nbsp;&nbsp;&nbsp;_________________________&nbsp;&nbsp;&nbsp;</div>
+  <div class="section-title">Wind Speed</div>
+  <div class="option" data-value="kmh">km/h</div>
+  <div class="option" data-value="mph">mph</div>
+    <div style="color: rgba(128, 128, 128, 0.213);">&nbsp;&nbsp;&nbsp;_________________________&nbsp;&nbsp;&nbsp;</div>
+  <div class="section-title">Precipitation</div>
+  <div class="option" data-value="mm">Millimeters (mm)</div>
+  <div class="option" data-value="inches">Inches (in)</div>
+</div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-    
-  </div>
   <div class="app">
     <div class="top">
       <div class="logo"></div>
@@ -462,24 +613,28 @@ padding-right: 200px;
         </div>
       </div>
       <aside class="hourly-panel" aria-label="Hourly forecast">
-        <div class="hourly-head">
-          <div>Hourly forecast</div>
-         
-          <div >
+     <div class="hourly-head">
+  <div>Hourly forecast</div>
 
-  <select class="select-day"  id="day" name="day">
-    <option value="tuesday" class="day">Tuesday</option>
-    <option value="wednesday" class="day2">Wednesday</option>
-    <option value="thursday"class="day2">Thursday</option>
-    <option value="friday"class="day2">Friday</option>
-    <option value="saturday"class="day2">Saturday</option>
-    <option value="sunday"class="day2">Sunday</option>
-      <option value="monday"class="day2">Monday</option>
-  </select>
+  <!-- Day Select -->
+  <div class="day-select" id="day-trigger">
+    Tuesday
+    <span class="arrow-down">▼</span>
+  </div>
+
+  <!-- Day Panel -->
+  <div class="day-panel" id="day-panel">
+    <div class="option" data-value="monday">Monday</div>
+    <div class="option" data-value="tuesday">Tuesday</div>
+    <div class="option" data-value="wednesday">Wednesday</div>
+    <div class="option" data-value="thursday">Thursday</div>
+    <div class="option" data-value="friday">Friday</div>
+    <div class="option" data-value="saturday">Saturday</div>
+    <div class="option" data-value="sunday">Sunday</div>
+    
+  </div>
 </div>
 
-
-        </div>
         <div class="hourly-list">
           <div class="hour">
             <div class="mid"><img src="assets/images/icon-overcast.webp" alt=""><div></div></div>
@@ -531,5 +686,60 @@ padding-right: 200px;
       </aside>
     </div>
   </div>
+
+
+
+
+
+
+<script>
+  const unitsTrigger = document.getElementById('units-trigger');
+  const unitsPanel = document.getElementById('units-panel');
+
+  unitsTrigger.addEventListener('click', () => {
+    unitsPanel.classList.toggle('active');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!unitsTrigger.contains(e.target) && !unitsPanel.contains(e.target)) {
+      unitsPanel.classList.remove('active');
+    }
+  });
+
+
+
+  const dayTrigger = document.getElementById('day-trigger');
+  const dayPanel = document.getElementById('day-panel');
+
+  dayTrigger.addEventListener('click', () => {
+    dayPanel.classList.toggle('active');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!dayTrigger.contains(e.target) && !dayPanel.contains(e.target)) {
+      dayPanel.classList.remove('active');
+    }
+  });
+
+  // Option selection logic
+  const dayOptions = dayPanel.querySelectorAll('.option');
+  dayOptions.forEach(option => {
+    option.addEventListener('click', (e) => {
+      dayTrigger.textContent = e.target.textContent;
+      dayPanel.classList.remove('active');
+    });
+  });
+
+
+
+
+
+
+  
+</script>
+
+
+
+
 </body>
 </html>
