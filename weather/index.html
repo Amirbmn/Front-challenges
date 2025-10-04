@@ -40,6 +40,7 @@ body{
   padding: 36px;
   box-shadow: var(--soft-shadow);
   color: #e9eefc;
+  margin-top: -150px;
 }
 .top {
   display:flex;
@@ -56,10 +57,11 @@ body{
 }
 .logo-image {
   position: absolute;
-  margin-top: -500px;
-  left: 140px;
+  margin-top: -780px;
+  left: 440px;
   width: 120px;
   right: 100px;
+  
   height: auto;
 
 }
@@ -71,9 +73,9 @@ body{
   font-weight:600;
   font-size:13px;
   position: absolute;
-right: 150px;
+right: 450px;
 top: 30px;
-background-color: rgba(128, 128, 128, 0.324);
+background-color: rgba(255,255,255,0.05);
 padding-left: 40px;
 }
 
@@ -85,7 +87,7 @@ padding-left: 40px;
   font-weight:600;
   font-size:13px;
   position: absolute;
-right: 205px;
+right: 510px;
 top: 30px;
 background-color: rgba(255, 255, 255, 0);
 }
@@ -100,7 +102,7 @@ background-color: rgba(255, 255, 255, 0);
   color:#ffffff;
   letter-spacing: -0.2px;
  font-family: 'title-font';
- margin-top: 250px;
+ margin-top: 150px;
  margin-bottom: 50px;
 }
 .search-wrap {
@@ -164,7 +166,7 @@ font-size: 15px;
   align-items:center;
   padding:20px 22px;
   border-radius: 14px;
-  height: 140px;
+  height: 190px;
  background: url(assets/images/bg-today-large.svg);
   position:relative;
   overflow:visible;
@@ -238,17 +240,45 @@ font-size: 15px;
   font-size:14px;
   color:#cfe0ff;
   font-weight:600;
-  margin-bottom:10px;
+  margin-bottom:20px;
+}
+ 
+select {
+  background-color: rgba(221, 218, 218, 0.229);
+  color: rgba(255, 255, 255, 0.833);
+  padding: 5px 10px;
+  width: 90px; 
+  border-radius: 8px;
+  border: none;
+  outline: none;
 }
 
-select{
+
+select:focus {
+  width: 220px;
+}
+
+/* Ensures the width returns to 90px after selection */
+select:after{
+  width: 90px;
+}
+
+.select-day{
   background-color: rgba(221, 218, 218, 0.229);
-  color:rgba(255, 255, 255, 0.833);
-  padding-left: 10px;
-  padding-top: 5px;
-   padding-bottom: 5px;
-   width: 90px;
-   border-radius: 8px;
+  border: none;
+
+}
+
+.day{
+  background-color:rgba(255, 255, 255, 0.878);
+border: none;
+ width: 200px;
+}
+
+.day2{
+padding-right: 200px;
+ background-color:rgba(255,255,255,0.05);
+ width: 400px;
 }
 
 .daily-row {
@@ -266,17 +296,18 @@ select{
   padding:10px 8px;
   text-align:center;
   flex-shrink:0;
-  background-color: rgba(128, 128, 128, 0.324);
+  background-color: rgba(255,255,255,0.05);
   box-shadow: 0 10px 30px rgba(2,6,23,0.35);
 }
-.day-card .dow{ font-size:13px; color:var(--muted); margin-bottom:8px; }
-.day-card .icon img{ width:28px; height:28px; display:block; margin:0 auto 8px; }
+.day-card .dow{ font-size:13px; color:var(--muted); margin-bottom:15px; }
+.day-card .icon img{ width:35px; height:35px; display:block; margin-bottom: 18px;margin-left: 15px;}
 .day-card .range{ font-size:13px; color:#e6f0ff; }
 .hourly-panel {
   background: linear-gradient(180deg,  rgba(128, 128, 128, 0.324),  rgba(128, 128, 128, 0.324));
   border-radius: 14px;
   padding:14px;
-  min-height:360px;
+  scrollbar-width: thin;
+  width: 350px;
 }
 .hourly-head {
   display:flex;
@@ -294,6 +325,9 @@ select{
   max-height:420px;
   overflow:auto;
   padding-right:6px;
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(128, 128, 128, 0.324) transparent ;
 }
 .hour {
   display:flex;
@@ -305,9 +339,9 @@ select{
   background-color: rgba(128, 128, 128, 0.171);
   border: 1px solid rgba(255,255,255,0.02);
 }
-.hour .time { color:var(--muted); width:64px; font-weight:700; }
-.hour .mid { display:flex; align-items:center; gap:8px; color:#eaf0ff; font-size:14px; flex:1 }
-.hour .mid img{ width:20px; height:20px; display:block }
+.hour .time { color:var(--muted); width:64px; font-weight:700;margin-right: 108px; color:#eaf0ff;}
+.hour .mid { display:flex; align-items:center; gap:8px; color:#eaf0ff; font-size:14px; height: 15px;}
+.hour .mid img{ width:35px; height:35px; display:block }
 .hour .temp-h{ font-weight:700; color:#fff; width:36px; text-align:right }
 @media (max-width:1100px){
   .app{ width:94% }
@@ -415,16 +449,16 @@ select{
         <div class="hourly-head">
           <div>Hourly forecast</div>
          
-          <div class="select-day">
+          <div >
 
-  <select  id="day" name="day">
-    <option value="tuesday">Tuesday</option>
-    <option value="wednesday">Wednesday</option>
-    <option value="thursday">Thursday</option>
-    <option value="friday">Friday</option>
-    <option value="saturday">Saturday</option>
-    <option value="sunday">Sunday</option>
-      <option value="monday">Monday</option>
+  <select class="select-day"  id="day" name="day">
+    <option value="tuesday" class="day">Tuesday</option>
+    <option value="wednesday" class="day2">Wednesday</option>
+    <option value="thursday"class="day2">Thursday</option>
+    <option value="friday"class="day2">Friday</option>
+    <option value="saturday"class="day2">Saturday</option>
+    <option value="sunday"class="day2">Sunday</option>
+      <option value="monday"class="day2">Monday</option>
   </select>
 </div>
 
@@ -432,43 +466,49 @@ select{
         </div>
         <div class="hourly-list">
           <div class="hour">
+            <div class="mid"><img src="assets/images/icon-overcast.webp" alt=""><div></div></div>
             <div class="time">3 PM</div>
-            <div class="mid"><img src="assets/cloud.svg" alt=""><div>Cloudy</div></div>
             <div class="temp-h">20°</div>
           </div>
           <div class="hour">
-            <div class="time">4 PM</div>
-            <div class="mid"><img src="assets/partly-cloudy.svg" alt=""><div>Partly</div></div>
+            <div class="mid"><img src="assets/images/icon-partly-cloudy.webp" alt=""><div></div></div>
+              <div class="time">4 PM</div>
             <div class="temp-h">20°</div>
           </div>
           <div class="hour">
-            <div class="time">5 PM</div>
-            <div class="mid"><img src="assets/sun-small.svg" alt=""><div>Sunny</div></div>
+            
+            <div class="mid"><img src="assets/images/icon-sunny.webp" alt=""><div></div></div>
+           <div class="time">5 PM</div>
             <div class="temp-h">20°</div>
           </div>
           <div class="hour">
-            <div class="time">6 PM</div>
-            <div class="mid"><img src="assets/cloud.svg" alt=""><div>Cloudy</div></div>
+           
+            <div class="mid"><img src="assets/images/icon-overcast.webp" alt=""><div></div></div>
+           <div class="time">6 PM</div>
             <div class="temp-h">19°</div>
           </div>
           <div class="hour">
+          
+            <div class="mid"><img src="assets/images/icon-rain.webp" alt=""><div></div></div>
             <div class="time">7 PM</div>
-            <div class="mid"><img src="assets/cloud-rain.svg" alt=""><div>Light rain</div></div>
             <div class="temp-h">18°</div>
           </div>
           <div class="hour">
-            <div class="time">8 PM</div>
-            <div class="mid"><img src="assets/fog.svg" alt=""><div>Fog</div></div>
+            
+            <div class="mid"><img src="assets/images/icon-fog.webp" alt=""><div></div></div>
+          <div class="time">8 PM</div>
             <div class="temp-h">18°</div>
           </div>
           <div class="hour">
-            <div class="time">9 PM</div>
-            <div class="mid"><img src="assets/cloud-rain.svg" alt=""><div>Rain</div></div>
+         
+            <div class="mid"><img src="assets/images/icon-rain.webp" alt=""><div></div></div>
+              <div class="time">9 PM</div>
             <div class="temp-h">17°</div>
           </div>
           <div class="hour">
-            <div class="time">10 PM</div>
-            <div class="mid"><img src="assets/cloud-rain.svg" alt=""><div>Rain</div></div>
+         
+            <div class="mid"><img src="assets/images/icon-rain.webp" alt=""><div></div></div>
+              <div class="time">10 PM</div>
             <div class="temp-h">17°</div>
           </div>
         </div>
