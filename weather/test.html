@@ -1,60 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Open-Meteo Weather</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    input, button { padding: 10px; margin: 5px; }
-    pre { background: #f0f0f0; padding: 10px; border-radius: 5px; }
-  </style>
-</head>
-<body>
-  <h1>Weather App (Open-Meteo)</h1>
-  <input id="city" placeholder="Enter city name">
-  <button onclick="getWeather()">Get Weather</button>
-  <pre id="output"></pre>
+<input type="text" id="myInput" />
+<div id="suggestions"></div>
 
-  <script>
-    async function getWeather() {
-      const city = document.getElementById("city").value.trim();
-      const output = document.getElementById("output");
-      if (!city) return (output.textContent = "Please enter a city name.");
+<script>
+  const input = document.getElementById('myInput');
+  const suggestionsDiv = document.getElementById('suggestions');
+  const userSuggestions = ['suggestion1', 'suggestion2', 'suggestion3']; // Example data
 
-      try {
-        // 1️⃣ Get city coordinates (using Nominatim geocoding)
-        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`);
-        const geoData = await geoRes.json();
-        if (!geoData.length) throw new Error("City not found.");
-
-        const lat = geoData[0].lat;
-        const lon = geoData[0].lon;
-
-        // 2️⃣ Fetch weather data from Open-Meteo
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`;
-        const weatherRes = await fetch(url);
-        const data = await weatherRes.json();
-
-        const current = data.current;
-        const daily = data.daily;
-
-        output.textContent = `
-City: ${geoData[0].display_name}
-Temperature: ${current.temperature_2m} °C
-Humidity: ${current.relative_humidity_2m} %
-Wind Speed: ${current.wind_speed_10m} m/s
-Precipitation: ${current.precipitation} mm
-
---- Daily Forecast ---
-Highs: ${daily.temperature_2m_max.join(", ")} °C
-Lows: ${daily.temperature_2m_min.join(", ")} °C
-Precipitation (daily): ${daily.precipitation_sum.join(", ")} mm
-        `;
-      } catch (err) {
-        output.textContent = "Error: " + err.message;
-      }
-    }
-  </script>
-</body>
-</html>
+  input.addEventListener('input', function() {
+    const value = input.value.toLowerCase();
+    suggestionsDiv.innerHTML = '';
+    userSuggestions
+      .filter(item => item.toLowerCase().includes(value))
+      .forEach(item => {
+        const div = document.createElement('div');
+        div.textContent = item;
+        suggestionsDiv.appendChild(div);
+      });
+  });
+</script>

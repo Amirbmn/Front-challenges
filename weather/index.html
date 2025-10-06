@@ -512,30 +512,8 @@ padding-right: 200px;
   .hourly-panel{ order:2 }
 }
 
-.suggestions {
-  position: absolute;
-  top: 70px; /* below the search bar */
-  left: 0;
-  width: 560px; /* same as input width */
-  background: rgba(15,21,48,0.95);
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-  max-height: 220px;
-  overflow-y: auto;
-  z-index: 20;
-}
 
-.suggestions .suggestion {
-  padding: 10px 14px;
-  color: #e9eefc;
-  cursor: pointer;
-  transition: background 0.2s;
-  font-weight: 500;
-}
 
-.suggestions .suggestion:hover {
-  background: rgba(255,255,255,0.08);
-}
 
 
 option{
@@ -543,6 +521,31 @@ option{
   border:none;
   height: 10px;
 }
+
+
+
+    .suggestions {
+      position: absolute;
+      top: 250px;
+      left: 650px;
+      width: 450px;
+      background: rgba(20, 26, 60, 0.95);
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 20;
+    }
+
+    .suggestion {
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .suggestion:hover, .suggestion.selected {
+      background: rgba(255,255,255,0.12);
+    }
 
 
 </style>
@@ -577,9 +580,9 @@ option{
       <div class="search">
         <img class="search-logo" src="assets/images/icon-search.svg" alt="">
         <input id="city" type="search" placeholder="Search for a place..." aria-label="Search for a place">
-        <div id="search-suggestions" class="suggestions"></div>
-
-        <button onclick="getWeather()">Search</button>
+        
+<div id="suggestions" class="suggestions"></div>
+        <button id="search-btn" onclick="getWeather()">Search</button>
       </div>
     </div>
     <div class="layout">
@@ -990,6 +993,75 @@ function updateUnits(selectedUnit) {
     el.textContent = isF ? `${cToF(t)}°` : `${t}°`;
   });
 }
+
+
+
+   
+    const searchBtn = document.getElementById("search-btn");
+    const suggestionsBox = document.getElementById("suggestions");
+
+    let searchHistory = [];
+    let selectedIndex = -1;
+
+    function renderSuggestions() {
+      if (searchHistory.length === 0) {
+        suggestionsBox.innerHTML = '';
+        return;
+      }
+      suggestionsBox.innerHTML = searchHistory.map((city, index) => `
+        <div class="suggestion ${index === selectedIndex ? 'selected' : ''}" data-index="${index}">
+          ${city}
+        </div>
+      `).join('');
+    }
+
+    function addCityToHistory(city) {
+      if (!city) return;
+      if (!searchHistory.includes(city)) {
+        searchHistory.unshift(city);
+        if (searchHistory.length > 10) searchHistory.pop(); // Keep only last 10
+      }
+      renderSuggestions();
+    }
+
+    searchBtn.addEventListener("click", () => {
+      const city = cityInput.value.trim();
+      if (!city) return;
+      addCityToHistory(city);
+      suggestionsBox.innerHTML = '';
+      selectedIndex = -1;
+     
+    });
+
+    cityInput.addEventListener("focus", renderSuggestions);
+function showSuggestions(query) {
+  const filtered = searchHistory.filter(city =>
+    city.toLowerCase().includes(query.toLowerCase())
+  );
+
+  if (filtered.length === 0) {
+    suggestionsBox.innerHTML = '';
+    return;
+  }
+
+  suggestionsBox.innerHTML = filtered
+    .map((city, i) => `<div class="suggestion ${i === selectedIndex ? 'selected' : ''}">${city}</div>`)
+    .join('');
+}
+
+
+
+    suggestionsBox.addEventListener("click", (e) => {
+      if (e.target.classList.contains("suggestion")) {
+        cityInput.value = e.target.textContent;
+        suggestionsBox.innerHTML = '';
+      getWeather();
+      }
+    });
+
+
+
+
 </script>
 
 
