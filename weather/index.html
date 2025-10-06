@@ -118,12 +118,30 @@ body{
   cursor: pointer;
   font-size: 13px;
   transition: background 0.2s;
+   position: relative;
+  padding-right: 24px; 
 }
 
 .units-panel .option:hover {
   background: rgba(255,255,255,0.08);
   color: #fff;
 }
+
+
+.units-panel .option::after {
+  content: "✓";
+  position: absolute;
+  right: 10px;  /* stick it to the end */
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.units-panel .option.selected::after {
+  opacity: 1;
+}
+
 
 
 .icon-units{
@@ -170,15 +188,16 @@ background-color: rgba(255, 255, 255, 0);
   border: none;
   padding:12px 14px;
   border-radius:10px;
-  color:#eaf0ff87;
+ color:rgba(255, 255, 255, 0.7);
   outline:none;
   font-size:15px;
-
+padding-left: 45px;
 }
 input[type="search"]::placeholder {
   color:rgba(255, 255, 255, 0.7);
 margin-left: 200px;
 font-size: 15px;
+
 }
 
 
@@ -501,7 +520,6 @@ option{
 }
 
 
-
 </style>
 </head>
 <body>
@@ -533,7 +551,7 @@ option{
     <div class="search-wrap">
       <div class="search">
         <img class="search-logo" src="assets/images/icon-search.svg" alt="">
-        <input type="search" placeholder=" &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Search for a place..." aria-label="Search for a place">
+        <input type="search" placeholder="Search for a place..." aria-label="Search for a place">
         <button>Search</button>
       </div>
     </div>
@@ -616,13 +634,13 @@ option{
      <div class="hourly-head">
   <div>Hourly forecast</div>
 
-  <!-- Day Select -->
+
   <div class="day-select" id="day-trigger">
     Tuesday
     <span class="arrow-down">▼</span>
   </div>
 
-  <!-- Day Panel -->
+
   <div class="day-panel" id="day-panel">
     <div class="option" data-value="monday">Monday</div>
     <div class="option" data-value="tuesday">Tuesday</div>
@@ -715,11 +733,7 @@ option{
     dayPanel.classList.toggle('active');
   });
 
-  document.addEventListener('click', (e) => {
-    if (!dayTrigger.contains(e.target) && !dayPanel.contains(e.target)) {
-      dayPanel.classList.remove('active');
-    }
-  });
+ 
 
   // Option selection logic
   const dayOptions = dayPanel.querySelectorAll('.option');
@@ -731,7 +745,26 @@ option{
   });
 
 
+const unitGroups = [
+  ["celsius", "fahrenheit"],
+  ["kmh", "mph"],
+  ["mm", "inches"]
+];
 
+unitGroups.forEach(group => {
+  group.forEach(value => {
+    const option = document.querySelector(`.option[data-value="${value}"]`);
+    option.addEventListener("click", () => {
+      // remove existing selection in same group
+      group.forEach(v => {
+        const o = document.querySelector(`.option[data-value="${v}"]`);
+        o.classList.remove("selected");
+      });
+      // add tick to clicked option
+      option.classList.add("selected");
+    });
+  });
+});
 
 
 
