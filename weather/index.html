@@ -33,6 +33,7 @@ body{
   justify-content:center;
   padding:30px;
 }
+
 .app {
   width: 1020px;
   background: var(--app-bg);
@@ -511,6 +512,30 @@ padding-right: 200px;
   .hourly-panel{ order:2 }
 }
 
+.suggestions {
+  position: absolute;
+  top: 70px; /* below the search bar */
+  left: 0;
+  width: 560px; /* same as input width */
+  background: rgba(15,21,48,0.95);
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 20;
+}
+
+.suggestions .suggestion {
+  padding: 10px 14px;
+  color: #e9eefc;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-weight: 500;
+}
+
+.suggestions .suggestion:hover {
+  background: rgba(255,255,255,0.08);
+}
 
 
 option{
@@ -551,8 +576,10 @@ option{
     <div class="search-wrap">
       <div class="search">
         <img class="search-logo" src="assets/images/icon-search.svg" alt="">
-        <input type="search" placeholder="Search for a place..." aria-label="Search for a place">
-        <button>Search</button>
+        <input id="city" type="search" placeholder="Search for a place..." aria-label="Search for a place">
+        <div id="search-suggestions" class="suggestions"></div>
+
+        <button onclick="getWeather()">Search</button>
       </div>
     </div>
     <div class="layout">
@@ -656,6 +683,16 @@ option{
         <div class="hourly-list">
           <div class="hour">
             <div class="mid"><img src="assets/images/icon-overcast.webp" alt=""><div></div></div>
+            <div class="time">1 PM</div>
+            <div class="temp-h">20°</div>
+          </div>
+          <div class="hour">
+            <div class="mid"><img src="assets/images/icon-overcast.webp" alt=""><div></div></div>
+            <div class="time">2 PM</div>
+            <div class="temp-h">20°</div>
+          </div>
+          <div class="hour">
+            <div class="mid"><img src="assets/images/icon-overcast.webp" alt=""><div></div></div>
             <div class="time">3 PM</div>
             <div class="temp-h">20°</div>
           </div>
@@ -700,6 +737,17 @@ option{
               <div class="time">10 PM</div>
             <div class="temp-h">17°</div>
           </div>
+          <div class="hour">
+            <div class="mid"><img src="assets/images/icon-overcast.webp" alt=""><div></div></div>
+            <div class="time">11 PM</div>
+            <div class="temp-h">20°</div>
+          </div>
+          <div class="hour">
+            <div class="mid"><img src="assets/images/icon-overcast.webp" alt=""><div></div></div>
+            <div class="time">12 PM</div>
+            <div class="temp-h">20°</div>
+          </div>
+        
         </div>
       </aside>
     </div>
@@ -711,64 +759,237 @@ option{
 
 
 <script>
-  const unitsTrigger = document.getElementById('units-trigger');
-  const unitsPanel = document.getElementById('units-panel');
-
-  unitsTrigger.addEventListener('click', () => {
-    unitsPanel.classList.toggle('active');
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!unitsTrigger.contains(e.target) && !unitsPanel.contains(e.target)) {
-      unitsPanel.classList.remove('active');
-    }
-  });
-
-
-
-  const dayTrigger = document.getElementById('day-trigger');
-  const dayPanel = document.getElementById('day-panel');
-
-  dayTrigger.addEventListener('click', () => {
-    dayPanel.classList.toggle('active');
-  });
-
- 
-
-  // Option selection logic
-  const dayOptions = dayPanel.querySelectorAll('.option');
-  dayOptions.forEach(option => {
-    option.addEventListener('click', (e) => {
-      dayTrigger.textContent = e.target.textContent;
-      dayPanel.classList.remove('active');
-    });
-  });
-
-
-const unitGroups = [
-  ["celsius", "fahrenheit"],
-  ["kmh", "mph"],
-  ["mm", "inches"]
-];
-
+/* ---------------- UNIT MENU LOGIC ---------------- */
+const unitsTrigger = document.getElementById('units-trigger');
+const unitsPanel = document.getElementById('units-panel');
+unitsTrigger.addEventListener('click', () => unitsPanel.classList.toggle('active'));
+document.addEventListener('click', (e) => {
+  if (!unitsTrigger.contains(e.target) && !unitsPanel.contains(e.target)) {
+    unitsPanel.classList.remove('active');
+  }
+});
+const unitGroups = [["celsius","fahrenheit"],["kmh","mph"],["mm","inches"]];
 unitGroups.forEach(group => {
   group.forEach(value => {
     const option = document.querySelector(`.option[data-value="${value}"]`);
-    option.addEventListener("click", () => {
-      // remove existing selection in same group
-      group.forEach(v => {
-        const o = document.querySelector(`.option[data-value="${v}"]`);
-        o.classList.remove("selected");
+    if (option) {
+      option.addEventListener("click", () => {
+        group.forEach(v => {
+          document.querySelector(`.option[data-value="${v}"]`).classList.remove("selected");
+        });
+        option.classList.add("selected");
       });
-      // add tick to clicked option
-      option.classList.add("selected");
-    });
+    }
   });
+});
+
+/* ---------------- DAY SELECT LOGIC ---------------- */
+const dayTrigger = document.getElementById('day-trigger');
+const dayPanel = document.getElementById('day-panel');
+dayTrigger.addEventListener('click', () => dayPanel.classList.toggle('active'));
+
+dayPanel.querySelectorAll('.option').forEach(opt => {
+  opt.addEventListener('click', e => {
+    dayTrigger.textContent = e.target.textContent;
+    dayPanel.classList.remove('active');
+    updateHourlyForDay(e.target.textContent); // refresh hourly data when day changes
+  });
+});
+
+let globalHourly = null; // store full hourly dataset
+let globalDaily = null;
+
+/* ---------------- WEATHER LOGIC ---------------- */
+async function getWeather() {
+  const city = document.getElementById("city").value.trim();
+  if (!city) return alert("Please enter a city name.");
+
+  try {
+    // 1️⃣ Get coordinates
+    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}`);
+    const geoData = await geoRes.json();
+    if (!geoData.length) throw new Error("City not found");
+    const lat = geoData[0].lat;
+    const lon = geoData[0].lon;
+const locationName = geoData[0].display_name.split(","); 
+
+const cityName = locationName[0];  
+const countryName = locationName[locationName.length - 1]; 
+
+    // 2️⃣ Get weather data
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation,relative_humidity_2m,wind_speed_10m,weathercode&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    const current = data.current;
+    globalHourly = data.hourly;
+    globalDaily = data.daily;
+
+    // --- Update main card ---
+    document.querySelector(".location").textContent = cityName+','+countryName;
+    const now = new Date();
+    document.querySelector(".date").textContent = now.toLocaleDateString("en-US", {
+      weekday: "long", month: "short", day: "numeric", year: "numeric"
+    });
+    document.querySelector(".temp").textContent = `${Math.round(current.temperature_2m)}°`;
+    document.querySelector(".stat:nth-child(1) .value").textContent = `${Math.round(current.apparent_temperature)}°`;
+    document.querySelector(".stat:nth-child(2) .value").textContent = `${current.relative_humidity_2m}%`;
+    document.querySelector(".stat:nth-child(3) .value").textContent = `${Math.round(current.wind_speed_10m)} km/h`;
+    document.querySelector(".stat:nth-child(4) .value").textContent = `${current.precipitation ?? 0} mm`;
+
+    // --- Update daily cards ---
+    const dailyRow = document.querySelector(".daily-row");
+    dailyRow.innerHTML = "";
+    for (let i = 0; i < globalDaily.time.length; i++) {
+      const dayName = new Date(globalDaily.time[i]).toLocaleDateString("en-US", { weekday: "short" });
+      const max = Math.round(globalDaily.temperature_2m_max[i]);
+      const min = Math.round(globalDaily.temperature_2m_min[i]);
+      dailyRow.innerHTML += `
+        <div class="day-card">
+          <div class="dow">${dayName}</div>
+          <div class="icon"><img src="assets/images/icon-sunny.webp" alt="icon"></div>
+          <div class="range">${max}° <span style="opacity:.65">/ ${min}°</span></div>
+        </div>`;
+    }
+
+    // --- Default: show today's hourly ---
+    const today = new Date(globalHourly.time[0]).toLocaleDateString("en-US", { weekday: "long" });
+    updateHourlyForDay(today);
+
+  } catch (err) {
+    alert("Error: " + err.message);
+    console.error(err);
+  }
+}
+
+/* ---------------- HOURLY UPDATE ---------------- */
+function updateHourlyForDay(dayName) {
+  if (!globalHourly || !globalDaily) return;
+  const hourlyList = document.querySelector(".hourly-list");
+    // fallback
+  hourlyList.innerHTML = "";
+
+  const times = globalHourly.time;
+  const temps = globalHourly.temperature_2m;
+
+  for (let i = 0; i < times.length; i++) {
+const code = globalHourly.weathercode[i]; // get from API
+const iconFile = weatherIcons[code] || "icon-partly-cloudy.webp";
+    const date = new Date(times[i]);
+    const weekday = date.toLocaleDateString("en-US", { weekday: "long" });
+    if (weekday.toLowerCase() === dayName.toLowerCase()) {
+     
+hourlyList.innerHTML += `
+  <div class="hour">
+    <div class="mid"><img src="assets/images/${iconFile}" alt="weather"></div>
+    <div class="time">${formatTo12Hour(date)}</div>
+    <div class="temp-h">${Math.round(temps[i])}°</div>
+  </div>`;
+
+    }
+  }
+}
+
+
+
+function formatTo12Hour(date) {
+  return date.toLocaleTimeString([], {
+    hour: 'numeric',
+    hour12: true
+  });
+}
+
+
+const weatherIcons = {
+  0: "icon-sunny.webp",
+  1: "icon-sunny.webp",
+  2: "icon-partly-cloudy.webp",
+  3: "icon-overcast.webp",
+  45: "icon-fog.webp",
+  48: "icon-fog.webp",
+  51: "icon-rain.webp",
+  53: "icon-rain.webp",
+  55: "icon-rain.webp",
+  61: "icon-rain.webp",
+  63: "icon-rain.webp",
+  65: "icon-rain.webp",
+  71: "icon-snow.webp",
+  73: "icon-snow.webp",
+  75: "icon-snow.webp",
+  80: "icon-rain.webp",
+  81: "icon-rain.webp",
+  82: "icon-rain.webp",
+  95: "icon-storm.webp",
+  99: "icon-storm.webp"
+};
+
+
+
+const cityInput=document.getElementById("city");
+cityInput.addEventListener("keydown",function(e){
+if(e.key==='Enter'){
+  getWeather();
+}
+
 });
 
 
 
+
+function cToF(c) {
+  return Math.round((c * 9/5) + 32);
+}
+
+function kmhToMph(kmh) {
+  return Math.round(kmh / 1.609);
+}
+
+function mmToInches(mm) {
+  return (mm / 25.4).toFixed(2);
+}
+
+const unitOptions = document.querySelectorAll('.units-panel .option[data-value]');
+unitOptions.forEach(option => {
+  option.addEventListener('click', () => {
+    const selected = option.dataset.value;
+    updateUnits(selected);
+  });
+});
+
+
+function updateUnits(selectedUnit) {
+  const tempEl = document.querySelector('.temp'); 
+  const feelsEl = document.querySelector('.stat:nth-child(1) .value'); 
+  const windEl = document.querySelector('.stat:nth-child(3) .value');
+  const precEl = document.querySelector('.stat:nth-child(4) .value'); 
+
   
+  const tempC = globalHourly ? Math.round(globalHourly.temperature_2m[0]) : 20;
+  const feelsC = globalHourly ? Math.round(globalHourly.temperature_2m[0]) : 18;
+  const windKmh = globalHourly ? Math.round(globalHourly.wind_speed_10m[0]) : 14;
+  const precMm = globalHourly ? globalHourly.precipitation[0] : 0;
+
+  const isF = document.querySelector('.option[data-value="fahrenheit"]').classList.contains('selected');
+  const isMph = document.querySelector('.option[data-value="mph"]').classList.contains('selected');
+  const isInches = document.querySelector('.option[data-value="inches"]').classList.contains('selected');
+
+  
+  tempEl.textContent = isF ? `${cToF(tempC)}°` : `${tempC}°`;
+  feelsEl.textContent = isF ? `${cToF(feelsC)}°` : `${feelsC}°`;
+
+  
+  windEl.textContent = isMph ? `${kmhToMph(windKmh)} mph` : `${windKmh} km/h`;
+
+  
+  precEl.textContent = isInches ? `${mmToInches(precMm)} in` : `${precMm} mm`;
+
+  
+  const hourlyTemps = document.querySelectorAll('.hourly-list .temp-h');
+  hourlyTemps.forEach((el, idx) => {
+    const t = Math.round(globalHourly.temperature_2m[idx]);
+    el.textContent = isF ? `${cToF(t)}°` : `${t}°`;
+  });
+}
 </script>
 
 
