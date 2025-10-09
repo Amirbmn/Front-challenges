@@ -928,13 +928,30 @@ const weatherIcons = {
 
 
 
-const cityInput=document.getElementById("city");
-cityInput.addEventListener("keydown",function(e){
-if(e.key==='Enter'){
-  getWeather();
-}
-
+const cityInput = document.getElementById("city");
+cityInput.addEventListener("keydown", function(e){
+  if (e.key === 'Enter') {
+   
+    const city = cityInput.value.trim();
+    if (city) {
+       getWeather();   
+      addCityToHistory(city);  
+      renderSuggestions();     
+             
+    }
+  }
 });
+
+
+
+cityInput.addEventListener("blur", () => {
+
+  
+    suggestionsBox.innerHTML = "";
+  
+});
+
+
 
 
 
