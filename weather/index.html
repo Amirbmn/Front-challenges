@@ -1077,6 +1077,14 @@ function showSuggestions(query) {
     });
 
 
+suggestionsBox.addEventListener("mousedown", (e) => {
+  const suggestion = e.target.closest(".suggestion");
+  if (!suggestion) return;
+  const city = suggestion.textContent.trim();
+  cityInput.value = city;
+  suggestionsBox.innerHTML = "";
+
+});
 
 
 </script>
