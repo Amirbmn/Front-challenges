@@ -818,6 +818,13 @@ option{
 
 
 <script>
+/* ---------------- GLOBALS ---------------- */
+let globalHourly = null; // store full hourly dataset
+let globalDaily = null;
+let currentWeather = null; // <-- store current weather object
+let cityName = '';
+let countryName = '';
+
 /* ---------------- UNIT MENU LOGIC ---------------- */
 const unitsTrigger = document.getElementById('units-trigger');
 const unitsPanel = document.getElementById('units-panel');
@@ -832,12 +839,20 @@ unitGroups.forEach(group => {
   group.forEach(value => {
     const option = document.querySelector(`.option[data-value="${value}"]`);
     if (option) {
-      option.addEventListener("click", () => {
-        group.forEach(v => {
-          document.querySelector(`.option[data-value="${v}"]`).classList.remove("selected");
-        });
-        option.classList.add("selected");
-      });
+    option.addEventListener("click", () => {
+  group.forEach(v => {
+    const el = document.querySelector(`.option[data-value="${v}"]`);
+    if (el) el.classList.remove("selected");
+  });
+  option.classList.add("selected");
+
+  // tell which unit group changed
+  let groupType = "temp";
+  if (group.includes("kmh")) groupType = "wind";
+  if (group.includes("mm")) groupType = "prec";
+  updateUnits(groupType);
+});
+
     }
   });
 });
@@ -849,26 +864,21 @@ dayTrigger.addEventListener('click', () => dayPanel.classList.toggle('active'));
 
 dayPanel.querySelectorAll('.option').forEach(opt => {
   opt.addEventListener('click', e => {
-    const dayText = dayTrigger.querySelector('.selected-day'); // keep only the text part
+    const dayText = dayTrigger.querySelector('.selected-day');
     if (dayText) {
       dayText.textContent = e.target.textContent;
-localStorage.setItem('selectedDay', e.target.textContent);
-
+      localStorage.setItem('selectedDay', e.target.textContent);
     }
     dayPanel.classList.remove('active');
     updateHourlyForDay(e.target.textContent);
   });
 });
 
-
-let globalHourly = null; // store full hourly dataset
-let globalDaily = null;
-
 /* ---------------- WEATHER LOGIC ---------------- */
 async function getWeather() {
   const city = document.getElementById("city").value.trim();
   if (!city) return alert("Please enter a city name.");
-showLoader();
+  showLoader();
   try {
     // 1️⃣ Get coordinates
     const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}`);
@@ -876,36 +886,34 @@ showLoader();
     if (!geoData.length) throw new Error("City not found");
     const lat = geoData[0].lat;
     const lon = geoData[0].lon;
-const locationName = geoData[0].display_name.split(","); 
-
-const cityName = locationName[0];  
-const countryName = locationName[locationName.length - 1]; 
+    const locationNameParts = geoData[0].display_name.split(",");
+    cityName = (locationNameParts[0] || city).trim();
+    countryName = (locationNameParts[locationNameParts.length - 1] || '').trim();
 
     // 2️⃣ Get weather data
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation,relative_humidity_2m,wind_speed_10m,weathercode&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,wind_speed_10m,weathercode&hourly=temperature_2m,precipitation,relative_humidity_2m,wind_speed_10m,weathercode&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`;
     const res = await fetch(url);
     const data = await res.json();
 
     const current = data.current;
+    currentWeather = current; // expose current
     globalHourly = data.hourly;
     globalDaily = data.daily;
 
     // --- Update main card ---
-document.querySelector(".location").textContent = cityName+','+countryName;
-const now = new Date();
-document.querySelector(".date").textContent = now.toLocaleDateString("en-US", {
-  weekday: "long", month: "short", day: "numeric", year: "numeric"
-});
-document.querySelector(".temp").textContent = `${Math.round(current.temperature_2m)}°`;
-document.querySelector(".stat:nth-child(1) .value").textContent = `${Math.round(current.apparent_temperature)}°`;
-document.querySelector(".stat:nth-child(2) .value").textContent = `${current.relative_humidity_2m}%`;
-document.querySelector(".stat:nth-child(3) .value").textContent = `${Math.round(current.wind_speed_10m)} km/h`;
-document.querySelector(".stat:nth-child(4) .value").textContent = `${current.precipitation ?? 0} mm`;
-// pick weather icon based on weathercode
-const code = current.weathercode ?? 0;
-const iconFile = weatherIcons[code] || "icon-partly-cloudy.webp";
-document.querySelector(".main-right img").src = `assets/images/${iconFile}`;
-
+    document.querySelector(".location").textContent = `${cityName}, ${countryName}`;
+    const now = new Date();
+    document.querySelector(".date").textContent = now.toLocaleDateString("en-US", {
+      weekday: "long", month: "short", day: "numeric", year: "numeric"
+    });
+    document.querySelector(".temp").textContent = `${Math.round(current.temperature_2m)}°`;
+    document.querySelector(".stat:nth-child(1) .value").textContent = `${Math.round(current.apparent_temperature)}°`;
+    document.querySelector(".stat:nth-child(2) .value").textContent = `${current.relative_humidity_2m}%`;
+    document.querySelector(".stat:nth-child(3) .value").textContent = `${Math.round(current.wind_speed_10m)} km/h`;
+    document.querySelector(".stat:nth-child(4) .value").textContent = `${current.precipitation ?? 0} mm`;
+    const code = current.weathercode ?? 0;
+    const iconFile = weatherIcons[code] || "icon-partly-cloudy.webp";
+    document.querySelector(".main-right img").src = `assets/images/${iconFile}`;
 
     // --- Update daily cards ---
     const dailyRow = document.querySelector(".daily-row");
@@ -926,6 +934,9 @@ document.querySelector(".main-right img").src = `assets/images/${iconFile}`;
     const today = new Date(globalHourly.time[0]).toLocaleDateString("en-US", { weekday: "long" });
     updateHourlyForDay(today);
 
+    // Ensure units reflect current selected options
+    updateUnits();
+
     hideLoader();
   } catch (err) {
     hideLoader();
@@ -942,11 +953,9 @@ function updateHourlyForDay(dayName) {
 
   const times = globalHourly.time;
   const temps = globalHourly.temperature_2m;
+  const codes = globalHourly.weathercode;
 
-  // 🧩 Normalize requested day
   const targetDay = dayName.toLowerCase();
-
-  // find all hours matching that day (or fallback to first day)
   let hasAny = false;
 
   for (let i = 0; i < times.length; i++) {
@@ -955,27 +964,25 @@ function updateHourlyForDay(dayName) {
 
     if (weekday === targetDay) {
       hasAny = true;
-      const code = globalHourly.weathercode[i];
-      const iconFile = weatherIcons[code] || "icon-partly-cloudy.webp";
+      const iconFile = weatherIcons[codes ? codes[i] : 2] || "icon-partly-cloudy.webp";
+      const celsiusVal = Math.round(temps[i]);
 
       hourlyList.innerHTML += `
-        <div class="hour">
+        <div class="hour" data-temp-c="${celsiusVal}">
           <div class="mid"><img src="assets/images/${iconFile}" alt="weather"></div>
           <div class="time">${formatTo12Hour(date)}</div>
-          <div class="temp-h">${Math.round(temps[i])}°</div>
+          <div class="temp-h">${celsiusVal}°</div>
         </div>`;
     }
   }
 
-  // 🔁 if no hours found (like Monday missing), fallback to the first day
   if (!hasAny) {
     const fallbackDay = new Date(times[0]).toLocaleDateString("en-US", { weekday: "long" });
     updateHourlyForDay(fallbackDay);
   }
+
+  updateUnits("temp"); // initialize correct display
 }
-
-
-
 
 function formatTo12Hour(date) {
   return date.toLocaleTimeString([], {
@@ -983,7 +990,6 @@ function formatTo12Hour(date) {
     hour12: true
   });
 }
-
 
 const weatherIcons = {
   0: "icon-sunny.webp",
@@ -1008,172 +1014,77 @@ const weatherIcons = {
   99: "icon-storm.webp"
 };
 
-
-
+/* ---------------- INPUT + SUGGESTIONS ---------------- */
+const searchBtn = document.getElementById("search-btn");
+const suggestionsBox = document.getElementById("suggestions");
 const cityInput = document.getElementById("city");
+
+let searchHistory = [];
+let selectedIndex = -1;
+
+function renderSuggestions() {
+  if (searchHistory.length === 0) {
+    suggestionsBox.innerHTML = '';
+    return;
+  }
+  suggestionsBox.innerHTML = searchHistory.map((city, index) => `
+    <div class="suggestion ${index === selectedIndex ? 'selected' : ''}" data-index="${index}">
+      ${city}
+    </div>
+  `).join('');
+}
+
+function addCityToHistory(city) {
+  if (!city) return;
+  if (!searchHistory.includes(city)) {
+    searchHistory.unshift(city);
+    if (searchHistory.length > 10) searchHistory.pop();
+  }
+  renderSuggestions();
+}
+
+searchBtn.addEventListener("click", () => {
+  const c = cityInput.value.trim();
+  if (!c) return;
+  addCityToHistory(c);
+  suggestionsBox.innerHTML = '';
+  selectedIndex = -1;
+  getWeather();
+});
+
 cityInput.addEventListener("keydown", function(e){
   if (e.key === 'Enter') {
-   
-    const city = cityInput.value.trim();
-    if (city) {
-       getWeather();   
-      addCityToHistory(city);  
-      renderSuggestions();     
-             
+    const c = cityInput.value.trim();
+    if (c) {
+      getWeather();
+      addCityToHistory(c);
+      renderSuggestions();
     }
   }
 });
 
+cityInput.addEventListener("focus", renderSuggestions);
 
-
-cityInput.addEventListener("blur", () => {
-
-  
-    suggestionsBox.innerHTML = "";
-  
-});
-
-
-
-
-
-
-function cToF(c) {
-  return Math.round((c * 9/5) + 32);
-}
-
-function kmhToMph(kmh) {
-  return Math.round(kmh / 1.609);
-}
-
-function mmToInches(mm) {
-  return (mm / 25.4).toFixed(2);
-}
-
-const unitOptions = document.querySelectorAll('.units-panel .option[data-value]');
-unitOptions.forEach(option => {
-  option.addEventListener('click', () => {
-    const selected = option.dataset.value;
-    updateUnits(selected);
-  });
-});
-
-
-function updateUnits(selectedUnit) {
-const locEl = document.querySelector(".location");
-const dateEl = document.querySelector(".date");
-const tempEl = document.querySelector(".temp");
-const feelsEl = document.querySelector(".stat:nth-child(1) .value");
-const humidEl = document.querySelector(".stat:nth-child(2) .value");
-const windEl = document.querySelector(".stat:nth-child(3) .value");
-const precEl = document.querySelector(".stat:nth-child(4) .value");
-
-if (locEl) locEl.textContent = `${cityName}, ${countryName}`;
-if (dateEl) {
-  const now = new Date();
-  dateEl.textContent = now.toLocaleDateString("en-US", {
-    weekday: "long", month: "short", day: "numeric", year: "numeric"
-  });
-}
-if (tempEl) tempEl.textContent = `${Math.round(current.temperature_2m)}°`;
-if (feelsEl) feelsEl.textContent = `${Math.round(current.apparent_temperature)}°`;
-if (humidEl) humidEl.textContent = `${current.relative_humidity_2m}%`;
-if (windEl) windEl.textContent = `${Math.round(current.wind_speed_10m)} km/h`;
-if (precEl) precEl.textContent = `${current.precipitation ?? 0} mm`;
-
-  
-  const tempC = globalHourly ? Math.round(globalHourly.temperature_2m[0]) : 20;
-  const feelsC = globalHourly ? Math.round(globalHourly.temperature_2m[0]) : 18;
-  const windKmh = globalHourly ? Math.round(globalHourly.wind_speed_10m[0]) : 14;
-  const precMm = globalHourly ? globalHourly.precipitation[0] : 0;
-
-  const isF = document.querySelector('.option[data-value="fahrenheit"]').classList.contains('selected');
-  const isMph = document.querySelector('.option[data-value="mph"]').classList.contains('selected');
-  const isInches = document.querySelector('.option[data-value="inches"]').classList.contains('selected');
-
-  
-  tempEl.textContent = isF ? `${cToF(tempC)}°` : `${tempC}°`;
-  feelsEl.textContent = isF ? `${cToF(feelsC)}°` : `${feelsC}°`;
-
-  
-  windEl.textContent = isMph ? `${kmhToMph(windKmh)} mph` : `${windKmh} km/h`;
-
-  
-  precEl.textContent = isInches ? `${mmToInches(precMm)} in` : `${precMm} mm`;
-
-  
-  const hourlyTemps = document.querySelectorAll('.hourly-list .temp-h');
-  hourlyTemps.forEach((el, idx) => {
-    const t = Math.round(globalHourly.temperature_2m[idx]);
-    el.textContent = isF ? `${cToF(t)}°` : `${t}°`;
-  });
-}
-
-
-
-   
-    const searchBtn = document.getElementById("search-btn");
-    const suggestionsBox = document.getElementById("suggestions");
-
-    let searchHistory = [];
-    let selectedIndex = -1;
-
-    function renderSuggestions() {
-      if (searchHistory.length === 0) {
-        suggestionsBox.innerHTML = '';
-        return;
-      }
-      suggestionsBox.innerHTML = searchHistory.map((city, index) => `
-        <div class="suggestion ${index === selectedIndex ? 'selected' : ''}" data-index="${index}">
-          ${city}
-        </div>
-      `).join('');
-    }
-
-    function addCityToHistory(city) {
-      if (!city) return;
-      if (!searchHistory.includes(city)) {
-        searchHistory.unshift(city);
-        if (searchHistory.length > 10) searchHistory.pop(); // Keep only last 10
-      }
-      renderSuggestions();
-    }
-
-    searchBtn.addEventListener("click", () => {
-      const city = cityInput.value.trim();
-      if (!city) return;
-      addCityToHistory(city);
-      suggestionsBox.innerHTML = '';
-      selectedIndex = -1;
-     
-    });
-
-    cityInput.addEventListener("focus", renderSuggestions);
 function showSuggestions(query) {
   const filtered = searchHistory.filter(city =>
     city.toLowerCase().includes(query.toLowerCase())
   );
-
   if (filtered.length === 0) {
     suggestionsBox.innerHTML = '';
     return;
   }
-
   suggestionsBox.innerHTML = filtered
     .map((city, i) => `<div class="suggestion ${i === selectedIndex ? 'selected' : ''}">${city}</div>`)
     .join('');
 }
 
-
-
-    suggestionsBox.addEventListener("click", (e) => {
-      if (e.target.classList.contains("suggestion")) {
-        cityInput.value = e.target.textContent;
-        suggestionsBox.innerHTML = '';
-      getWeather();
-      }
-    });
-
+suggestionsBox.addEventListener("click", (e) => {
+  if (e.target.classList.contains("suggestion")) {
+    cityInput.value = e.target.textContent;
+    suggestionsBox.innerHTML = '';
+    getWeather();
+  }
+});
 
 suggestionsBox.addEventListener("mousedown", (e) => {
   const suggestion = e.target.closest(".suggestion");
@@ -1181,66 +1092,102 @@ suggestionsBox.addEventListener("mousedown", (e) => {
   const city = suggestion.textContent.trim();
   cityInput.value = city;
   suggestionsBox.innerHTML = "";
-getWeather();
+  getWeather();
 });
 
-
+/* ---------------- LOADER ---------------- */
 function showLoader() {
   const mainCard = document.querySelector('.main-card');
   const stats = document.querySelectorAll('.stat .value');
-  const dayCards=document.querySelectorAll('.day-card');
-  const mids=document.querySelectorAll('.mid');
-  const times=document.querySelectorAll('.time');
-  const temps=document.querySelectorAll('.temp-h');
+  const dayCards = document.querySelectorAll('.day-card');
+  const mids = document.querySelectorAll('.mid');
+  const times = document.querySelectorAll('.time');
+  const temps = document.querySelectorAll('.temp-h');
   const dayTrigger = document.getElementById('day-trigger');
   mainCard.classList.add('loading');
 
-  // Hide main weather info
   mainCard.querySelector('.main-left .location').textContent = '';
   mainCard.querySelector('.main-left .date').textContent = '';
   mainCard.querySelector('.main-right .temp').textContent = '';
   mainCard.querySelector('.main-right img').src = '';
- 
- 
 
-   if (dayTrigger) {
-    const dayText = dayTrigger.querySelector('.selected-day'); // assume text is wrapped like <span class="day-text">Tuesday</span>
-    if (dayText) {
-      dayText.textContent = '__';
-    }
+  if (dayTrigger) {
+    const dayText = dayTrigger.querySelector('.selected-day');
+    if (dayText) dayText.textContent = '__';
   }
 
-
-stats.forEach(s => s.textContent = '___');
-dayCards.forEach(s => s.textContent = '');
-mids.forEach(s => s.textContent = '');
-times.forEach(s => s.textContent = '');
-temps.forEach(s => s.textContent = '');
+  stats.forEach(s => s.textContent = '___');
+  dayCards.forEach(s => s.textContent = '');
+  mids.forEach(s => s.textContent = '');
+  times.forEach(s => s.textContent = '');
+  temps.forEach(s => s.textContent = '');
 }
-
 
 function hideLoader() {
   const mainCard = document.querySelector('.main-card');
   const dayTrigger = document.getElementById('day-trigger');
-  const savedDay = localStorage.getItem('selectedDay'); // get saved day
+  const savedDay = localStorage.getItem('selectedDay');
   if (dayTrigger) {
     const dayText = dayTrigger.querySelector('.selected-day');
-    if (dayText) {
-      // use saved day if exists, otherwise default
-      dayText.textContent = savedDay || 'Tuesday';
-    }
+    if (dayText) dayText.textContent = savedDay || 'Tuesday';
   }
   mainCard.classList.remove('loading');
 }
 
+/* ---------------- UNIT CONVERSION HELPERS ---------------- */
+function cToF(c) { return Math.round((c * 9/5) + 32); }
+function kmhToMph(kmh) { return Math.round(kmh / 1.609); }
+function mmToInches(mm) { return (mm / 25.4).toFixed(2); }
 
+/* ---------------- UPDATE UNITS (fix) ---------------- */
+function updateUnits(changedGroup = null) {
+  const isF = document.querySelector('.option[data-value="fahrenheit"]')?.classList.contains('selected');
+  const isMph = document.querySelector('.option[data-value="mph"]')?.classList.contains('selected');
+  const isInches = document.querySelector('.option[data-value="inches"]')?.classList.contains('selected');
 
+  // --- Temperature update ---
+  if (!changedGroup || changedGroup === "temp") {
+    if (currentWeather) {
+      const tempC = Math.round(currentWeather.temperature_2m);
+      const feelsC = Math.round(currentWeather.apparent_temperature);
+      const tempEl = document.querySelector(".temp");
+      const feelsEl = document.querySelector(".stat:nth-child(1) .value");
+      if (tempEl) tempEl.textContent = isF ? `${cToF(tempC)}°` : `${tempC}°`;
+      if (feelsEl) feelsEl.textContent = isF ? `${cToF(feelsC)}°` : `${feelsC}°`;
+    }
 
+    // hourly temps — convert from stored base Celsius
+    document.querySelectorAll('.hour').forEach(hourEl => {
+      const baseC = parseFloat(hourEl.dataset.tempC);
+      if (isNaN(baseC)) return;
+      const display = isF ? `${cToF(baseC)}°` : `${Math.round(baseC)}°`;
+      const tempEl = hourEl.querySelector('.temp-h');
+      if (tempEl) tempEl.textContent = display;
+    });
+  }
 
+  // --- Wind update ---
+  if (!changedGroup || changedGroup === "wind") {
+    if (currentWeather) {
+      const windKmh = Math.round(currentWeather.wind_speed_10m ?? 0);
+      const windEl = document.querySelector(".stat:nth-child(3) .value");
+      if (windEl) windEl.textContent = isMph ? `${kmhToMph(windKmh)} mph` : `${windKmh} km/h`;
+    }
+  }
+
+  // --- Precipitation update ---
+  if (!changedGroup || changedGroup === "prec") {
+    if (currentWeather) {
+      const precMm = currentWeather.precipitation ?? 0;
+      const precEl = document.querySelector(".stat:nth-child(4) .value");
+      if (precEl) precEl.textContent = isInches ? `${mmToInches(precMm)} in` : `${precMm} mm`;
+    }
+  }
+}
 
 </script>
 
-
+ 
 
 
 </body>
