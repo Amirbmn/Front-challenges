@@ -121,6 +121,7 @@ body{
   transition: background 0.2s;
    position: relative;
   padding-right: 24px; 
+
 }
 
 .units-panel .option:hover {
@@ -137,6 +138,7 @@ body{
   transform: translateY(-50%);
   opacity: 0;
   transition: opacity 0.2s;
+ 
 }
 
 .units-panel .option.selected::after {
@@ -299,6 +301,21 @@ font-size: 15px;
   background-color: rgba(128, 128, 128, 0.324);
   margin-bottom: 20px;
 }
+
+
+.stat.loading{
+  background: var(--card);
+  border-radius:12px;
+  padding:14px 16px;
+  flex:1;
+  height:75px;
+  min-width:0;
+  box-shadow: inset 0 -1px 0 rgba(255,255,255,0.02);
+  background-color: rgba(128, 128, 128, 0.324);
+  margin-bottom: 20px;
+}
+
+
 .stat .label { font-size:13px; color:var(--muted); margin-bottom:6px; }
 .stat .value { font-size:18px; font-weight:700; color:#fff;margin-top: 10px; }
 .daily-area {
@@ -350,6 +367,13 @@ select:after{
   backdrop-filter: blur(8px);
   user-select: none;
   width: 100px;
+  
+}
+
+
+.selected-day{
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 .day-select:hover {
@@ -450,6 +474,7 @@ padding-right: 200px;
 .daily-row::-webkit-scrollbar{ height:8px }
 .daily-row::-webkit-scrollbar-thumb{ background: rgba(128, 128, 128, 0.324);; border-radius:6px }
 .day-card {
+  height: 123px;
   min-width:72px;
   background: var(--card);
   border-radius:12px;
@@ -548,6 +573,36 @@ option{
     }
 
 
+.main-card.loading {
+  background: url(assets/images/icon-loading.svg) center center no-repeat;
+  background-size: 60px;
+     background-color: rgba(255,255,255,0.12);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:20px 22px;
+  border-radius: 14px;
+  height: 190px;
+  position:relative;
+  overflow:visible;
+}
+
+
+.main-card.loading::after {
+  content: "Loading";
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #aab4e0;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+
+
 </style>
 </head>
 <body>
@@ -576,6 +631,7 @@ option{
       
     </div>
     <h1 class="title">How's the sky looking today?</h1>
+    
     <div class="search-wrap">
       <div class="search">
         <img class="search-logo" src="assets/images/icon-search.svg" alt="">
@@ -595,7 +651,7 @@ option{
           </div>
           <div class="main-right">
             <div class="main-sun">
-              <img class="main-sun" src="assets/images/icon-sunny.webp" alt="sun">
+              <img class="main-sun" src="assets/images/icon-sunny.webp" alt="">
             </div>
             <div class="temp">20°</div>
           
@@ -666,7 +722,7 @@ option{
 
 
   <div class="day-select" id="day-trigger">
-    Tuesday
+    <p class="selected-day">Tuesday</p>
     <span class="arrow-down">▼</span>
   </div>
 
@@ -793,11 +849,17 @@ dayTrigger.addEventListener('click', () => dayPanel.classList.toggle('active'));
 
 dayPanel.querySelectorAll('.option').forEach(opt => {
   opt.addEventListener('click', e => {
-    dayTrigger.textContent = e.target.textContent;
+    const dayText = dayTrigger.querySelector('.selected-day'); // keep only the text part
+    if (dayText) {
+      dayText.textContent = e.target.textContent;
+localStorage.setItem('selectedDay', e.target.textContent);
+
+    }
     dayPanel.classList.remove('active');
-    updateHourlyForDay(e.target.textContent); // refresh hourly data when day changes
+    updateHourlyForDay(e.target.textContent);
   });
 });
+
 
 let globalHourly = null; // store full hourly dataset
 let globalDaily = null;
@@ -806,7 +868,7 @@ let globalDaily = null;
 async function getWeather() {
   const city = document.getElementById("city").value.trim();
   if (!city) return alert("Please enter a city name.");
-
+showLoader();
   try {
     // 1️⃣ Get coordinates
     const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}`);
@@ -829,16 +891,21 @@ const countryName = locationName[locationName.length - 1];
     globalDaily = data.daily;
 
     // --- Update main card ---
-    document.querySelector(".location").textContent = cityName+','+countryName;
-    const now = new Date();
-    document.querySelector(".date").textContent = now.toLocaleDateString("en-US", {
-      weekday: "long", month: "short", day: "numeric", year: "numeric"
-    });
-    document.querySelector(".temp").textContent = `${Math.round(current.temperature_2m)}°`;
-    document.querySelector(".stat:nth-child(1) .value").textContent = `${Math.round(current.apparent_temperature)}°`;
-    document.querySelector(".stat:nth-child(2) .value").textContent = `${current.relative_humidity_2m}%`;
-    document.querySelector(".stat:nth-child(3) .value").textContent = `${Math.round(current.wind_speed_10m)} km/h`;
-    document.querySelector(".stat:nth-child(4) .value").textContent = `${current.precipitation ?? 0} mm`;
+document.querySelector(".location").textContent = cityName+','+countryName;
+const now = new Date();
+document.querySelector(".date").textContent = now.toLocaleDateString("en-US", {
+  weekday: "long", month: "short", day: "numeric", year: "numeric"
+});
+document.querySelector(".temp").textContent = `${Math.round(current.temperature_2m)}°`;
+document.querySelector(".stat:nth-child(1) .value").textContent = `${Math.round(current.apparent_temperature)}°`;
+document.querySelector(".stat:nth-child(2) .value").textContent = `${current.relative_humidity_2m}%`;
+document.querySelector(".stat:nth-child(3) .value").textContent = `${Math.round(current.wind_speed_10m)} km/h`;
+document.querySelector(".stat:nth-child(4) .value").textContent = `${current.precipitation ?? 0} mm`;
+// pick weather icon based on weathercode
+const code = current.weathercode ?? 0;
+const iconFile = weatherIcons[code] || "icon-partly-cloudy.webp";
+document.querySelector(".main-right img").src = `assets/images/${iconFile}`;
+
 
     // --- Update daily cards ---
     const dailyRow = document.querySelector(".daily-row");
@@ -859,7 +926,9 @@ const countryName = locationName[locationName.length - 1];
     const today = new Date(globalHourly.time[0]).toLocaleDateString("en-US", { weekday: "long" });
     updateHourlyForDay(today);
 
+    hideLoader();
   } catch (err) {
+    hideLoader();
     alert("Error: " + err.message);
     console.error(err);
   }
@@ -869,29 +938,42 @@ const countryName = locationName[locationName.length - 1];
 function updateHourlyForDay(dayName) {
   if (!globalHourly || !globalDaily) return;
   const hourlyList = document.querySelector(".hourly-list");
-    // fallback
   hourlyList.innerHTML = "";
 
   const times = globalHourly.time;
   const temps = globalHourly.temperature_2m;
 
-  for (let i = 0; i < times.length; i++) {
-const code = globalHourly.weathercode[i]; // get from API
-const iconFile = weatherIcons[code] || "icon-partly-cloudy.webp";
-    const date = new Date(times[i]);
-    const weekday = date.toLocaleDateString("en-US", { weekday: "long" });
-    if (weekday.toLowerCase() === dayName.toLowerCase()) {
-     
-hourlyList.innerHTML += `
-  <div class="hour">
-    <div class="mid"><img src="assets/images/${iconFile}" alt="weather"></div>
-    <div class="time">${formatTo12Hour(date)}</div>
-    <div class="temp-h">${Math.round(temps[i])}°</div>
-  </div>`;
+  // 🧩 Normalize requested day
+  const targetDay = dayName.toLowerCase();
 
+  // find all hours matching that day (or fallback to first day)
+  let hasAny = false;
+
+  for (let i = 0; i < times.length; i++) {
+    const date = new Date(times[i]);
+    const weekday = date.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+
+    if (weekday === targetDay) {
+      hasAny = true;
+      const code = globalHourly.weathercode[i];
+      const iconFile = weatherIcons[code] || "icon-partly-cloudy.webp";
+
+      hourlyList.innerHTML += `
+        <div class="hour">
+          <div class="mid"><img src="assets/images/${iconFile}" alt="weather"></div>
+          <div class="time">${formatTo12Hour(date)}</div>
+          <div class="temp-h">${Math.round(temps[i])}°</div>
+        </div>`;
     }
   }
+
+  // 🔁 if no hours found (like Monday missing), fallback to the first day
+  if (!hasAny) {
+    const fallbackDay = new Date(times[0]).toLocaleDateString("en-US", { weekday: "long" });
+    updateHourlyForDay(fallbackDay);
+  }
 }
+
 
 
 
@@ -978,10 +1060,26 @@ unitOptions.forEach(option => {
 
 
 function updateUnits(selectedUnit) {
-  const tempEl = document.querySelector('.temp'); 
-  const feelsEl = document.querySelector('.stat:nth-child(1) .value'); 
-  const windEl = document.querySelector('.stat:nth-child(3) .value');
-  const precEl = document.querySelector('.stat:nth-child(4) .value'); 
+const locEl = document.querySelector(".location");
+const dateEl = document.querySelector(".date");
+const tempEl = document.querySelector(".temp");
+const feelsEl = document.querySelector(".stat:nth-child(1) .value");
+const humidEl = document.querySelector(".stat:nth-child(2) .value");
+const windEl = document.querySelector(".stat:nth-child(3) .value");
+const precEl = document.querySelector(".stat:nth-child(4) .value");
+
+if (locEl) locEl.textContent = `${cityName}, ${countryName}`;
+if (dateEl) {
+  const now = new Date();
+  dateEl.textContent = now.toLocaleDateString("en-US", {
+    weekday: "long", month: "short", day: "numeric", year: "numeric"
+  });
+}
+if (tempEl) tempEl.textContent = `${Math.round(current.temperature_2m)}°`;
+if (feelsEl) feelsEl.textContent = `${Math.round(current.apparent_temperature)}°`;
+if (humidEl) humidEl.textContent = `${current.relative_humidity_2m}%`;
+if (windEl) windEl.textContent = `${Math.round(current.wind_speed_10m)} km/h`;
+if (precEl) precEl.textContent = `${current.precipitation ?? 0} mm`;
 
   
   const tempC = globalHourly ? Math.round(globalHourly.temperature_2m[0]) : 20;
@@ -1083,8 +1181,61 @@ suggestionsBox.addEventListener("mousedown", (e) => {
   const city = suggestion.textContent.trim();
   cityInput.value = city;
   suggestionsBox.innerHTML = "";
-
+getWeather();
 });
+
+
+function showLoader() {
+  const mainCard = document.querySelector('.main-card');
+  const stats = document.querySelectorAll('.stat .value');
+  const dayCards=document.querySelectorAll('.day-card');
+  const mids=document.querySelectorAll('.mid');
+  const times=document.querySelectorAll('.time');
+  const temps=document.querySelectorAll('.temp-h');
+  const dayTrigger = document.getElementById('day-trigger');
+  mainCard.classList.add('loading');
+
+  // Hide main weather info
+  mainCard.querySelector('.main-left .location').textContent = '';
+  mainCard.querySelector('.main-left .date').textContent = '';
+  mainCard.querySelector('.main-right .temp').textContent = '';
+  mainCard.querySelector('.main-right img').src = '';
+ 
+ 
+
+   if (dayTrigger) {
+    const dayText = dayTrigger.querySelector('.selected-day'); // assume text is wrapped like <span class="day-text">Tuesday</span>
+    if (dayText) {
+      dayText.textContent = '__';
+    }
+  }
+
+
+stats.forEach(s => s.textContent = '___');
+dayCards.forEach(s => s.textContent = '');
+mids.forEach(s => s.textContent = '');
+times.forEach(s => s.textContent = '');
+temps.forEach(s => s.textContent = '');
+}
+
+
+function hideLoader() {
+  const mainCard = document.querySelector('.main-card');
+  const dayTrigger = document.getElementById('day-trigger');
+  const savedDay = localStorage.getItem('selectedDay'); // get saved day
+  if (dayTrigger) {
+    const dayText = dayTrigger.querySelector('.selected-day');
+    if (dayText) {
+      // use saved day if exists, otherwise default
+      dayText.textContent = savedDay || 'Tuesday';
+    }
+  }
+  mainCard.classList.remove('loading');
+}
+
+
+
+
 
 
 </script>
